@@ -30,7 +30,7 @@
 #define MPR_AUTOCONFIG_USL			0x7B
 #define MPR_AUTOCONFIG_LSL			0x7C
 #define MPR_AUTOCONFIG_TARGET_LEVEL	0x7B
-
+#define MPR_SOFTRESET				0x80
 /*=====Check connection to MPR121, if return != 0, check config or run scanner======*/
 uint8_t MPR121_check_conection();
 
@@ -53,6 +53,11 @@ void MPR121_Read_register_16(uint8_t reg_addr, uint16_t * result);
 void MPR121_Write_register(uint8_t reg_addr, uint8_t * value);
 void MPR121_Write_register_16(uint8_t reg_addr, uint16_t * value);
 
-void MPR121_Set_AUTO_TARGET(uint8_t target_value);
 void MPR121_Set_threshold_value(uint8_t touch,uint8_t release);
+
+/*======Autoconfig functions=======*/
+void MPR121_Set_AUTO_TARGET(uint8_t target_value);
+void MPR121_Set_upperLimit(uint8_t upperLimit_value);
+void MPR121_Set_lowerLimit(uint8_t lowerLimit_value);
+
 #endif /* MPR121_H_ */

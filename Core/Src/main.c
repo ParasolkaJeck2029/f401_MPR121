@@ -112,6 +112,8 @@ int main(void)
   //printf(usb_buff);
   MPR121_Set_threshold_value(12, 6);
   MPR121_Set_AUTO_TARGET(180);
+  MPR121_Set_lowerLimit(130);
+  MPR121_Set_upperLimit(200);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -126,8 +128,8 @@ int main(void)
 		  uint8_t electrodes_07_status = 0xff;
 		  I2C_read_register_value(MPR_I2C_ADDR, MPR_ELE0_7_TOUCH_STATUS, &electrodes_07_status);
 		  uint8_t auto_target  = 0;
-		  MPR121_Read_register(MPR_AUTOCONFIG_TARGET_LEVEL, &auto_target);
-		  sprintf(usb_buff, "Electrodes: %d, Auto target: %d\r\n", electrodes_07_status, auto_target);
+		  MPR121_Read_register(0x4b, &auto_target);
+		  sprintf(usb_buff, "Electrodes: %d, Threshold: %d\r\n", electrodes_07_status, auto_target);
 	  }else{
 		  sprintf(usb_buff, "Error: %d\r\n", connection_status);
 	  }
