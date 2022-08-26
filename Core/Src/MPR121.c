@@ -26,4 +26,11 @@ uint8_t I2C_Scaner(){
 	return res;
 }
 
+void I2C_read_register_value(uint16_t dev_addr, uint8_t reg_addr, uint8_t *value){
+	HAL_I2C_Mem_Read(&MPR_I2C, dev_addr, reg_addr, I2C_MEMADD_SIZE_8BIT, value, 1, 1000);
+}
+
+void I2C_read_16_register_value(uint16_t dev_addr, uint8_t reg_addr, uint16_t *value){
+	HAL_I2C_Mem_Read(&MPR_I2C, dev_addr, reg_addr, I2C_MEMADD_SIZE_8BIT, value, 2, 1000);
+}
 
