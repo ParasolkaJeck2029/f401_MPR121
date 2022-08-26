@@ -12,10 +12,11 @@
 #include "stm32f4xx_hal.h"
 
 #define MPR_I2C hi2c1
-#define MPR_I2C_ADDR 0x4C<<	1
+#define MPR_I2C_ADDR 0xB4
 
 
 uint8_t MPR121_check_conection();
 
+uint8_t I2C_Scaner();
 
 #endif /* MPR121_H_ */
