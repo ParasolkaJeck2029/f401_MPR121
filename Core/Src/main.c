@@ -110,6 +110,7 @@ int main(void)
   char usb_buff[32] = "\r\n=====Start MPR121=======\r\n";
   CDC_Transmit_FS(usb_buff, strlen(usb_buff));
   //printf(usb_buff);
+  MPR121_Set_threshold_value(12, 6);
   MPR121_Set_AUTO_TARGET(180);
   /* USER CODE END 2 */
 

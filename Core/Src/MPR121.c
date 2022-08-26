@@ -56,3 +56,10 @@ void MPR121_Write_register_16(uint8_t reg_addr, uint16_t * value){
 void MPR121_Set_AUTO_TARGET(uint8_t target_value){
 	MPR121_Write_register(MPR_AUTOCONFIG_TARGET_LEVEL, &target_value);
 }
+
+void MPR121_Set_threshold_value(uint8_t touch,uint8_t release){
+	for (uint8_t i = 0; i < 12; i++){
+		MPR121_Write_register(MPR_ELE0_TOUCH_THRESHOLD + i * 2, &touch);
+		MPR121_Write_register(MPR_ELE0_RELEASE_THRESHOLD + i * 2, &release);
+	}
+}

@@ -23,6 +23,8 @@
 #define MPR_ELE_FILTRED_DATA_START	0x04
 #define MPR_ELE_BASELINE_VAl_START	0x1E
 #define MPR_ELEPROX_BASELINE_VAL	0x2A
+#define MPR_ELE0_TOUCH_THRESHOLD	0x41
+#define MPR_ELE0_RELEASE_THRESHOLD	0x42
 #define MPR_AUTOCONFIG_CONTROL_0	0x7B
 #define MPR_AUTOCONFIG_CONTROL_1	0x7C
 #define MPR_AUTOCONFIG_USL			0x7B
@@ -52,5 +54,5 @@ void MPR121_Write_register(uint8_t reg_addr, uint8_t * value);
 void MPR121_Write_register_16(uint8_t reg_addr, uint16_t * value);
 
 void MPR121_Set_AUTO_TARGET(uint8_t target_value);
-
+void MPR121_Set_threshold_value(uint8_t touch,uint8_t release);
 #endif /* MPR121_H_ */
