@@ -122,7 +122,7 @@ int main(void)
 	  uint8_t connection_status = MPR121_check_conection();
 	  uint8_t electrodes_07_status = 0xff;
 	  I2C_read_register_value(MPR_I2C_ADDR, MPR_ELE0_7_TOUCH_STATUS, &electrodes_07_status);
-	  sprintf(usb_buff, "Electrodes: %d, Conection: %d\r\n", electrodes_07_status, connection_status);
+	  sprintf(usb_buff, "Electrodes: %d, Connection: %d\r\n", electrodes_07_status, connection_status);
 	  CDC_Transmit_FS(usb_buff, strlen(usb_buff));
 	  HAL_Delay(250);
   }
