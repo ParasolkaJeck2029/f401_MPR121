@@ -25,6 +25,8 @@
 #define MPR_ELEPROX_BASELINE_VAL	0x2A
 #define MPR_ELE0_TOUCH_THRESHOLD	0x41
 #define MPR_ELE0_RELEASE_THRESHOLD	0x42
+#define MPR_AFE_CONFIG				0x5C
+#define MPR_FILTER_CONFIG			0x5D
 #define MPR_AUTOCONFIG_CONTROL_0	0x7B
 #define MPR_AUTOCONFIG_CONTROL_1	0x7C
 #define MPR_AUTOCONFIG_USL			0x7B
@@ -54,7 +56,8 @@ void MPR121_Write_register(uint8_t reg_addr, uint8_t * value);
 void MPR121_Write_register_16(uint8_t reg_addr, uint16_t * value);
 
 void MPR121_Set_threshold_value(uint8_t touch,uint8_t release);
-
+void MPR121_Set_charging_current(uint8_t current);
+void MPR121_Get_charging_current(uint8_t *result);
 /*======Autoconfig functions=======*/
 void MPR121_Set_AUTO_TARGET(uint8_t target_value);
 void MPR121_Set_upperLimit(uint8_t upperLimit_value);

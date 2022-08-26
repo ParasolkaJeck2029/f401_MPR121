@@ -114,6 +114,7 @@ int main(void)
   MPR121_Set_AUTO_TARGET(180);
   MPR121_Set_lowerLimit(130);
   MPR121_Set_upperLimit(200);
+  MPR121_Set_charging_current(16);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -127,9 +128,11 @@ int main(void)
 	  if (connection_status == HAL_OK){
 		  uint8_t electrodes_07_status = 0xff;
 		  I2C_read_register_value(MPR_I2C_ADDR, MPR_ELE0_7_TOUCH_STATUS, &electrodes_07_status);
+		  MPR121_Set_charging_current(16);
+
 		  uint8_t auto_target  = 0;
-		  MPR121_Read_register(0x4b, &auto_target);
-		  sprintf(usb_buff, "Electrodes: %d, Threshold: %d\r\n", electrodes_07_status, auto_target);
+		  MPR121_Get_charging_current(&auto_target);
+		  sprintf(usb_buff, "Electrodes: %d, Current: %d\r\n", electrodes_07_status, auto_target);
 	  }else{
 		  sprintf(usb_buff, "Error: %d\r\n", connection_status);
 	  }
