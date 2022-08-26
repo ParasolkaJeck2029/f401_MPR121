@@ -18,6 +18,16 @@
 /*======MPR121 registers address=======*/
 #define MPR_ELE0_7_TOUCH_STATUS 	0x00
 #define MPR_ELE8_11_TOUCH_STATUS 	0x01
+#define MPR_OOR0_7__STATUS			0x02
+#define MPR_OOR8_11__STATUS			0x03
+#define MPR_ELE_FILTRED_DATA_START	0x04
+#define MPR_ELE_BASELINE_VAl_START	0x1E
+#define MPR_ELEPROX_BASELINE_VAL	0x2A
+#define MPR_AUTOCONFIG_CONTROL_0	0x7B
+#define MPR_AUTOCONFIG_CONTROL_1	0x7C
+#define MPR_AUTOCONFIG_USL			0x7B
+#define MPR_AUTOCONFIG_LSL			0x7C
+#define MPR_AUTOCONFIG_TARGET_LEVEL	0x7B
 
 /*=====Check connection to MPR121, if return != 0, check config or run scanner======*/
 uint8_t MPR121_check_conection();
@@ -40,5 +50,7 @@ void MPR121_Read_register_16(uint8_t reg_addr, uint16_t * result);
 /*=====Writing MPR121 registers =======*/
 void MPR121_Write_register(uint8_t reg_addr, uint8_t * value);
 void MPR121_Write_register_16(uint8_t reg_addr, uint16_t * value);
+
+void MPR121_Set_AUTO_TARGET(uint8_t target_value);
 
 #endif /* MPR121_H_ */

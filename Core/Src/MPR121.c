@@ -47,9 +47,12 @@ void I2C_write_register_value(uint16_t dev_addr, uint8_t reg_addr, uint8_t *valu
 }
 
 void MPR121_Write_register(uint8_t reg_addr, uint8_t * value){
-	I2C_write_register_value(MPR_I2C_ADDR, reg_addr, value)
+	I2C_write_register_value(MPR_I2C_ADDR, reg_addr, value);
 }
 void MPR121_Write_register_16(uint8_t reg_addr, uint16_t * value){
 	/*will be added later*/
 }
 
+void MPR121_Set_AUTO_TARGET(uint8_t target_value){
+	MPR121_Write_register(MPR_AUTOCONFIG_TARGET_LEVEL, &target_value);
+}

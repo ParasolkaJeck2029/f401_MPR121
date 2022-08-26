@@ -110,6 +110,7 @@ int main(void)
   char usb_buff[32] = "\r\n=====Start MPR121=======\r\n";
   CDC_Transmit_FS(usb_buff, strlen(usb_buff));
   //printf(usb_buff);
+  MPR121_Set_AUTO_TARGET(180);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -120,9 +121,16 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 	  uint8_t connection_status = MPR121_check_conection();
-	  uint8_t electrodes_07_status = 0xff;
-	  I2C_read_register_value(MPR_I2C_ADDR, MPR_ELE0_7_TOUCH_STATUS, &electrodes_07_status);
-	  sprintf(usb_buff, "Electrodes: %d, Connection: %d\r\n", electrodes_07_status, connection_status);
+	  if (connection_status == HAL_OK){
+		  uint8_t electrodes_07_status = 0xff;
+		  I2C_read_register_value(MPR_I2C_ADDR, MPR_ELE0_7_TOUCH_STATUS, &electrodes_07_status);
+		  uint8_t auto_target  = 0;
+		  MPR121_Read_register(MPR_AUTOCONFIG_TARGET_LEVEL, &auto_target);
+		  sprintf(usb_buff, "Electrodes: %d, Auto target: %d\r\n", electrodes_07_status, auto_target);
+	  }else{
+		  sprintf(usb_buff, "Error: %d\r\n", connection_status);
+	  }
+
 	  CDC_Transmit_FS(usb_buff, strlen(usb_buff));
 	  HAL_Delay(250);
   }
