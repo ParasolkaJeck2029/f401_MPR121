@@ -81,3 +81,33 @@ void MPR121_Get_charging_current(uint8_t *result){
 	register_value = register_value & 0b00011111;
 	*result = register_value;
 }
+
+uint8_t MPR121_init(){
+	HAL_StatusTypeDef res = HAL_OK;
+	/*=====Section A of datasheet======*/
+	MPR121_Write_register(MPR_MHD_RISING, 0x01);
+	MPR121_Write_register(MPR_NHD_RISING, 0x01);
+	MPR121_Write_register(MPR_NCL_RISING, 0x00);
+	MPR121_Write_register(MPR_FDL_RISING, 0x00);
+	/*=====Section B of datasheet======*/
+	MPR121_Write_register(MPR_MHD_FALLING, 0x01);
+	MPR121_Write_register(MPR_NHD_FALLING, 0x01);
+	MPR121_Write_register(MPR_NCL_FALLING, 0xFF);
+	MPR121_Write_register(MPR_FDL_FALLING, 0x02);
+	/*=====Section C of datasheet======*/
+	MPR121_Set_threshold_value(0x0F, 0x0A);
+	/*=====Section D of datasheet======*/
+	MPR121_Write_register(MPR_FILTER_CONFIG, 0x04);
+	/*=====Section E of datasheet======*/
+	MPR121_Write_register(MPR_ELE_CONFIG, 0x0C);
+	/*=====Section F of datasheet======*/
+	MPR121_Write_register(MPR_AUTOCONFIG_CONTROL_0, 0x0B);
+	//MPR121_Set_threshold_value(12, 6);
+	MPR121_Set_AUTO_TARGET(180);
+	MPR121_Set_lowerLimit(130);
+	MPR121_Set_upperLimit(200);
+
+	MPR121_Set_charging_current(16);
+
+
+}

@@ -26,7 +26,7 @@
 #define MPR_MHD_RISING					0x2B
 #define MPR_NHD_RISING					0x2C
 #define MPR_NCL_RISING					0x2D
-#define MPR_FDL_RISINF					0x2E
+#define MPR_FDL_RISING					0x2E
 #define MPR_MHD_FALLING					0x2F
 #define MPR_NHD_FALLING					0x30
 #define MPR_NCL_FALLING					0x31
@@ -37,7 +37,7 @@
 #define MPR_ELEPTOX_MHD_RISING			0x36
 #define MPR_ELEPTOX_NHD_RISING			0x37
 #define MPR_ELEPTOX_NCL_RISING			0x38
-#define MPR_ELEPTOX_FDL_RISINF			0x39
+#define MPR_ELEPTOX_FDL_RISING			0x39
 #define MPR_ELEPTOX_MHD_FALLING			0x3A
 #define MPR_ELEPTOX_NHD_FALLING			0x3B
 #define MPR_ELEPTOX_NCL_FALLING			0x3C
@@ -101,4 +101,5 @@ void MPR121_Set_AUTO_TARGET(uint8_t target_value);
 void MPR121_Set_upperLimit(uint8_t upperLimit_value);
 void MPR121_Set_lowerLimit(uint8_t lowerLimit_value);
 
+uint8_t MPR121_init();
 #endif /* MPR121_H_ */
