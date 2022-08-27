@@ -102,4 +102,6 @@ void MPR121_Set_upperLimit(uint8_t upperLimit_value);
 void MPR121_Set_lowerLimit(uint8_t lowerLimit_value);
 
 uint8_t MPR121_init();
+
+uint16_t MPR121_read_buttons_status();
 #endif /* MPR121_H_ */

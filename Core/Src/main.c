@@ -122,13 +122,11 @@ int main(void)
     /* USER CODE BEGIN 3 */
 	  uint8_t connection_status = MPR121_check_conection();
 	  if (connection_status == HAL_OK){
-		  uint8_t electrodes_07_status = 0xff;
-		  I2C_read_register_value(MPR_I2C_ADDR, MPR_ELE0_7_TOUCH_STATUS, &electrodes_07_status);
-		  MPR121_Set_charging_current(16);
-
+		  uint16_t electrodes_status = MPR121_read_buttons_status();
 		  uint8_t auto_target  = 0;
+
 		  MPR121_Get_charging_current(&auto_target);
-		  sprintf(usb_buff, "Electrodes: %d, Current: %d\r\n", electrodes_07_status, auto_target);
+		  sprintf(usb_buff, "Electrodes: %d, Current: %d\r\n", electrodes_status, auto_target);
 	  }else{
 		  sprintf(usb_buff, "Error: %d\r\n", connection_status);
 	  }
