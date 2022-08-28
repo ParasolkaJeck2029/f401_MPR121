@@ -152,10 +152,8 @@ int main(void)
 	  uint8_t connection_status = MPR121_check_conection();
 	  if (connection_status == HAL_OK){
 		  uint16_t electrodes_status = MPR121_read_buttons_status();
-		  uint8_t auto_target  = 0;
-
-		  MPR121_Get_charging_current(&auto_target);
-		  sprintf(usb_buff, "Electrodes: " UINT16_T_TO_BINARY_PATTERN"\r\n", UINT16_T_TO_BINARY(electrodes_status));
+		  uint8_t b_state  =  MPR121_read_one_button(0);
+		  sprintf(usb_buff, "Electrodes: " UINT16_T_TO_BINARY_PATTERN" Button: %d\r\n", UINT16_T_TO_BINARY(electrodes_status), b_state);
 	  }else{
 		  sprintf(usb_buff, "Error: %d\r\n", connection_status);
 	  }

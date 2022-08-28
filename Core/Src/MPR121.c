@@ -134,12 +134,12 @@ uint8_t MPR121_init(){
 	MPR121_Write_register(MPR_ELE_CONFIG, &init_config_value.ELE_CONFIG);
 	/*=====Section F of datasheet======*/
 	MPR121_Write_register(MPR_AUTOCONFIG_CONTROL_0, &init_config_value.AUTO_CONFIG0);
-	//MPR121_Set_threshold_value(12, 6);
-	//MPR121_Set_AUTO_TARGET(180);
-	//MPR121_Set_lowerLimit(130);
-	//MPR121_Set_upperLimit(200);
+	MPR121_Set_threshold_value(12, 6);
+	MPR121_Set_AUTO_TARGET(180);
+	MPR121_Set_lowerLimit(130);
+	MPR121_Set_upperLimit(200);
 
-	//MPR121_Set_charging_current(16);
+	MPR121_Set_charging_current(16);
 
 	return res;
 }
@@ -149,4 +149,20 @@ uint16_t MPR121_read_buttons_status(){
 	MPR121_Read_register_16(MPR_ELE0_7_TOUCH_STATUS, &buttons_registers);
 	return buttons_registers & 0x0FFF;
 }
+
+uint8_t MPR121_read_one_button(uint8_t button_nomer){
+	uint8_t buttons_state = 100;
+	if (button_nomer < 8){
+		MPR121_Read_register(MPR_ELE0_7_TOUCH_STATUS, &buttons_state);
+		buttons_state = buttons_state >> (button_nomer);
+		return (buttons_state & 0x01);
+	}else{
+		MPR121_Read_register(MPR_ELE8_11_TOUCH_STATUS, &buttons_state);
+		button_nomer -= 8;
+		buttons_state = buttons_state >> (button_nomer);
+		return (buttons_state & 0x01);
+	}
+
+}
+void MPR_read_array_buttons(uint8_t * b_array);
 
