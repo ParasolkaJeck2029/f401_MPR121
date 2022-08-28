@@ -135,11 +135,11 @@ uint8_t MPR121_init(){
 	/*=====Section F of datasheet======*/
 	MPR121_Write_register(MPR_AUTOCONFIG_CONTROL_0, &init_config_value.AUTO_CONFIG0);
 	//MPR121_Set_threshold_value(12, 6);
-	MPR121_Set_AUTO_TARGET(180);
-	MPR121_Set_lowerLimit(130);
-	MPR121_Set_upperLimit(200);
+	//MPR121_Set_AUTO_TARGET(180);
+	//MPR121_Set_lowerLimit(130);
+	//MPR121_Set_upperLimit(200);
 
-	MPR121_Set_charging_current(16);
+	//MPR121_Set_charging_current(16);
 
 	return res;
 }

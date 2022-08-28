@@ -35,6 +35,35 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define BYTE_TO_BINARY_PATTERN "%c%c%c%c%c%c%c%c"
+#define BYTE_TO_BINARY(byte)  \
+  (byte & 0x80 ? '1' : '0'), \
+  (byte & 0x40 ? '1' : '0'), \
+  (byte & 0x20 ? '1' : '0'), \
+  (byte & 0x10 ? '1' : '0'), \
+  (byte & 0x08 ? '1' : '0'), \
+  (byte & 0x04 ? '1' : '0'), \
+  (byte & 0x02 ? '1' : '0'), \
+  (byte & 0x01 ? '1' : '0')
+
+#define UINT16_T_TO_BINARY_PATTERN "%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c"
+#define UINT16_T_TO_BINARY(byte)  \
+  (byte & 0x8000 ? '1' : '0'), \
+  (byte & 0x4000 ? '1' : '0'), \
+  (byte & 0x2000 ? '1' : '0'), \
+  (byte & 0x1000 ? '1' : '0'), \
+  (byte & 0x0800 ? '1' : '0'), \
+  (byte & 0x0400 ? '1' : '0'), \
+  (byte & 0x0200 ? '1' : '0'), \
+  (byte & 0x0100 ? '1' : '0'),  \
+  (byte & 0x0080 ? '1' : '0'), \
+  (byte & 0x0040 ? '1' : '0'), \
+  (byte & 0x0020 ? '1' : '0'), \
+  (byte & 0x0010 ? '1' : '0'), \
+  (byte & 0x0008 ? '1' : '0'), \
+  (byte & 0x0004 ? '1' : '0'), \
+  (byte & 0x0002 ? '1' : '0'), \
+  (byte & 0x0001 ? '1' : '0')
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -126,7 +155,7 @@ int main(void)
 		  uint8_t auto_target  = 0;
 
 		  MPR121_Get_charging_current(&auto_target);
-		  sprintf(usb_buff, "Electrodes: %d, Current: %d\r\n", electrodes_status, auto_target);
+		  sprintf(usb_buff, "Electrodes: " UINT16_T_TO_BINARY_PATTERN"\r\n", UINT16_T_TO_BINARY(electrodes_status));
 	  }else{
 		  sprintf(usb_buff, "Error: %d\r\n", connection_status);
 	  }
