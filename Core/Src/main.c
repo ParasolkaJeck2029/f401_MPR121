@@ -136,7 +136,7 @@ int main(void)
   MX_I2C1_Init();
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
-  char usb_buff[32] = "\r\n=====Start MPR121=======\r\n";
+  char usb_buff[48] = "\r\n=====Start MPR121=======\r\n";
   CDC_Transmit_FS(usb_buff, strlen(usb_buff));
   //printf(usb_buff);
   MPR121_init();
@@ -153,7 +153,12 @@ int main(void)
 	  if (connection_status == HAL_OK){
 		  uint16_t electrodes_status = MPR121_read_buttons_status();
 		  uint8_t b_state  =  MPR121_read_one_button(0);
-		  sprintf(usb_buff, "Electrodes: " UINT16_T_TO_BINARY_PATTERN" Button: %d\r\n", UINT16_T_TO_BINARY(electrodes_status), b_state);
+		  //sprintf(usb_buff, "Electrodes: " UINT16_T_TO_BINARY_PATTERN" Button: %d\r\n", UINT16_T_TO_BINARY(electrodes_status), b_state);
+		  uint8_t buttons[12];
+		  MPR121_read_array_buttons(buttons);
+		  sprintf(usb_buff, "Status: %d %d %d %d | %d %d %d %d | %d %d %d %d\r\n", buttons[0],buttons[1],buttons[2],buttons[3],buttons[4],buttons[5],buttons[6],buttons[7],buttons[8],buttons[9],buttons[10],buttons[11]);
+
+
 	  }else{
 		  sprintf(usb_buff, "Error: %d\r\n", connection_status);
 	  }

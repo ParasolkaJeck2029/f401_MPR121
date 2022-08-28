@@ -164,5 +164,10 @@ uint8_t MPR121_read_one_button(uint8_t button_nomer){
 	}
 
 }
-void MPR_read_array_buttons(uint8_t * b_array);
+void MPR121_read_array_buttons(uint8_t * b_array){
+	uint16_t buttons_state_all = MPR121_read_buttons_status();
+	for(uint8_t i = 0; i < 12; i++){
+		b_array[i] = (buttons_state_all >> i) & 0x0001;
+	}
+}
 

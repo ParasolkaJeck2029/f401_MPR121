@@ -105,5 +105,5 @@ uint8_t MPR121_init();
 
 uint16_t MPR121_read_buttons_status();
 uint8_t MPR121_read_one_button(uint8_t button_nomer);
-void MPR_read_array_buttons(uint8_t * b_array);
+void MPR121_read_array_buttons(uint8_t * b_array);
 #endif /* MPR121_H_ */
