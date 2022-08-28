@@ -67,12 +67,28 @@ void MPR121_Set_threshold_value(uint8_t touch,uint8_t release){
 		MPR121_Write_register(MPR_ELE0_RELEASE_THRESHOLD + i * 2, &release);
 	}
 }
+/*=====Set charging current, default 16 uA, 0 - 63 uA ===========*/
 void MPR121_Set_charging_current(uint8_t current){
 	uint8_t register_value;
 	MPR121_Read_register(MPR_AFE_CONFIG, &register_value);
 	uint8_t new_value = (register_value & 0b11100000) | current;
 	MPR121_Write_register(MPR_AFE_CONFIG, &new_value);
 }
+/*======Set electrodes sampling time in (2^samp_time) ms, 0-7, default 4 = 16 ms==========*/
+void MPR121_Set_sampling_time(uint8_t samp_time){
+	uint8_t register_value;
+	MPR121_Read_register(MPR_FILTER_CONFIG, &register_value);
+	uint8_t new_value = (register_value & 0b11111000) | samp_time;
+	MPR121_Write_register(MPR_AFE_CONFIG, &new_value);
+}
+/*========Return sampling time in ms, 0 - 128, default 16 ms=========*/
+void MPR121_Get_sampling_time(uint8_t *result){
+	uint8_t register_value;
+	MPR121_Read_register(MPR_AFE_CONFIG, &register_value);
+	register_value = register_value & 0b00011111;
+	*result = 2^(register_value);
+}
+/*=========Get charging current, from 0 to 63 uA, default 16=======*/
 void MPR121_Get_charging_current(uint8_t *result){
 	uint8_t register_value;
 	MPR121_Read_register(MPR_AFE_CONFIG, &register_value);
@@ -111,7 +127,7 @@ uint8_t MPR121_init(){
 	init_config_value.NCL_FALLING = 0x01;
 	init_config_value.FDL_FALLING = 0x02;
 
-	init_config_value.FILTER_CONFIG = 0x04;
+	init_config_value.FILTER_CONFIG = 0x04; //CDT = 0, SFI = 0, ESI = 2^4 = 16 ms (sampling interval)
 	init_config_value.ELE_CONFIG = 0x0C;
 	init_config_value.AUTO_CONFIG0 = 0x0B;
 
