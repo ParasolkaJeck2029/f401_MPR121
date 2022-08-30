@@ -64,6 +64,8 @@
   (byte & 0x0004 ? '1' : '0'), \
   (byte & 0x0002 ? '1' : '0'), \
   (byte & 0x0001 ? '1' : '0')
+
+#define TIME_OF_HOLD 600
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -164,58 +166,78 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  /*====Every tick check the connection to chip=======*/
 	  uint8_t connection_status = MPR121_check_conection();
-	  static uint16_t pwm_status = 0;
-	  static uint32_t timer_usb_write = 0, timer_pwm = 0;
-	  static uint8_t mode = 0;
 
-	  if(HAL_GetTick() - timer_pwm > 15){
-		  switch(mode){
+	  static uint16_t pwm_status = 0; //Brightness of red led (channel 2, PA1) to pulse mode of LED
+	  static uint32_t timer_usb_write = 0, timer_pwm = 0, timer_press = 0, timer_release = 0; //different timers to periodical action
+	  static uint8_t mode = 0;//mode of LED
+	  /*=====Choose of led's mode======*/
+	  switch(mode){
 		  case MODE_OFF: {
+			  /*=====OFF all leds===*/
 			  TIM2->CCR2 = 0;
 			  TIM2->CCR3 = 0;
 			  TIM2->CCR4 = 0;
 			  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3, GPIO_PIN_RESET);
 		  }break;
 		  case MODE_PULSE:{
+			  /*=====Pulse of red led (PA1)=====*/
+			  if(HAL_GetTick() - timer_pwm > 5){
 		  			  if(++pwm_status > 1728) pwm_status = 0;
 		  			  TIM2 -> CCR2 = pwm_status;
+		  			  timer_pwm = HAL_GetTick();
+			  }
 		  }break;
 		  case MODE_STATIC:{
-			  TIM2->CCR3 = 1200;
-			  TIM2->CCR4 = 1700;
-			  TIM2->CCR2 = 0;
+			  /*=====On pink color=======*/
+			  TIM2->CCR2 = 1200;
+			  TIM2->CCR3 = 1700;
+			  TIM2->CCR4 = 0;
 		  }break;
 		  case MODE_WHITE:{
+			  /*=====On all leds without PWM=====*/
 			  TIM2->CCR2 = 1727;
 			  TIM2->CCR3 = 1727;
 			  TIM2->CCR4 = 1727;
-			  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3, GPIO_PIN_SET);
+			  //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3, GPIO_PIN_SET);
 		  }break;
+		  /*=====If mode is improper, set mode as 0 (MODE_OFF)=======*/
 		  default: mode = MODE_OFF; break;
-		  }
-
 	  }
-	  if(HAL_GetTick() - timer_usb_write > 150){
+	  /*=======Every 50 ms write data to USB======*/
+	  if(HAL_GetTick() - timer_usb_write > 50){
+		  /*if connection is ok*/
 		  if (connection_status == HAL_OK){
-			  uint16_t electrodes_status = MPR121_read_buttons_status();
-		  	  static uint8_t last_buttons_status = 0;
+			  uint16_t electrodes_status = MPR121_read_buttons_status(); //read buttons status as uint16_t
+		  	  static uint8_t last_buttons_status = 0;	//variable to save last status sensor panel, need to definition of click and press
+		  	  /*This if is true, when panel is pressed */
 		  	  if (electrodes_status != 0 && last_buttons_status == 0){
+		  		  timer_press = HAL_GetTick();
 		  		  last_buttons_status = 1;
-		  		  mode++;
 		  	  }
+		  	  /*This if is true, when panel is released */
 		  	  if (electrodes_status == 0 && last_buttons_status == 1){
+		  		  timer_release = HAL_GetTick();
+		  		  /*Click and hold if*/
+		  		  if (timer_release - timer_press > TIME_OF_HOLD){//hold
+		  			  mode = MODE_OFF;
+		  		  }else{//click
+		  			  mode++;
+		  		  }
 		  		  last_buttons_status = 0;
 		  	  }
+		  	  /*make buffer for usb transceiver*/
 		  	  sprintf(usb_buff, "Mode %d Electrodes: " UINT16_T_TO_BINARY_PATTERN"\r\n",mode, UINT16_T_TO_BINARY(electrodes_status));
 		  	  //uint8_t buttons[12];
 		  	  //MPR121_read_array_buttons(buttons);
 		  	  //sprintf(usb_buff, "Mode: %d Status: %d %d %d %d | %d %d %d %d | %d %d %d %d\r\n",mode, buttons[0],buttons[1],buttons[2],buttons[3],buttons[4],buttons[5],buttons[6],buttons[7],buttons[8],buttons[9],buttons[10],buttons[11]);
-		 }else{
+		 }else{//if connection is broken
 			  //MPR121_init();
-			  sprintf(usb_buff, "Error: %d\r\n", connection_status);
+			  sprintf(usb_buff, "Error: %d\r\n", connection_status);//make buffer with error code
 		  }
-		  CDC_Transmit_FS(usb_buff, strlen(usb_buff));
+		  CDC_Transmit_FS(usb_buff, strlen(usb_buff));//Transmit message to USB
+		  timer_usb_write = HAL_GetTick();
 	  }
 
   }
@@ -376,6 +398,7 @@ static void MX_TIM2_Init(void)
   */
 static void MX_GPIO_Init(void)
 {
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
@@ -383,10 +406,35 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(ONBOARD_LED_GPIO_Port, ONBOARD_LED_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : ONBOARD_LED_Pin */
+  GPIO_InitStruct.Pin = ONBOARD_LED_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(ONBOARD_LED_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : MPR_INT_Pin */
+  GPIO_InitStruct.Pin = MPR_INT_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(MPR_INT_GPIO_Port, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
+
 }
 
 /* USER CODE BEGIN 4 */
-
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
+	if (GPIO_Pin == MPR_INT_Pin){
+		/*Put your code to this part to processing of interrupt from MPR121*/
+		HAL_GPIO_TogglePin(ONBOARD_LED_GPIO_Port, ONBOARD_LED_Pin);
+	}
+}
 /* USER CODE END 4 */
 
 /**
