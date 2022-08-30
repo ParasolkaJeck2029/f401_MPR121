@@ -6,7 +6,7 @@
  */
 
 #include "MPR121.h"
-
+#include "main.h"
 extern I2C_HandleTypeDef MPR_I2C;
 
 uint8_t MPR121_check_conection(){
@@ -81,6 +81,11 @@ void MPR121_Set_sampling_time(uint8_t samp_time){
 	uint8_t new_value = (register_value & 0b11111000) | samp_time;
 	MPR121_Write_register(MPR_AFE_CONFIG, &new_value);
 }
+/*========Set debounce of buttons, 0 - 8 to both of parameters=======*/
+void MPT121_Set_debounce(uint8_t touch, uint8_t release){
+	uint8_t new_register_value = 0b01110111 & ((touch & 0x08)|((release & 0x08)<<4));
+	MPR121_Write_register(MPR_DEBOUNSE_TOUCH_RELEASE, new_register_value);
+}
 /*========Return sampling time in ms, 0 - 128, default 16 ms=========*/
 void MPR121_Get_sampling_time(uint8_t *result){
 	uint8_t register_value;
@@ -95,7 +100,19 @@ void MPR121_Get_charging_current(uint8_t *result){
 	register_value = register_value & 0b00011111;
 	*result = register_value;
 }
-
+/*=======Get flag of over current, table 27 of datasheet, 0 - all ok, 1 - incorrect Rext resistor value =========*/
+uint8_t MPR121_Get_over_current_flag(){
+	uint8_t register_value;
+	MPR121_Read_register(MPR_ELE8_11_TOUCH_STATUS, &register_value);
+	return register_value & 0b10000000;
+}
+/*=======Get debounce of buttons, 0-8 to both of parameters, default 0=======*/
+void MPR121_Get_debounce(uint8_t *press, uint8_t *release){
+	uint8_t register_value;
+	MPR121_Read_register(MPR_DEBOUNSE_TOUCH_RELEASE, &register_value);
+	*press = register_value & 0b00000111;
+	*release = register_value & 0b01110000;
+}
 uint8_t MPR121_init(){
 	HAL_StatusTypeDef res = HAL_OK;
 	res = MPR121_check_conection();
@@ -159,6 +176,7 @@ uint8_t MPR121_init(){
 
 	return res;
 }
+
 
 uint16_t MPR121_read_buttons_status(){
 	uint16_t buttons_registers;

@@ -101,11 +101,13 @@ void MPR121_Set_AUTO_TARGET(uint8_t target_value);
 void MPR121_Set_upperLimit(uint8_t upperLimit_value);
 void MPR121_Set_lowerLimit(uint8_t lowerLimit_value);
 
+void MPR121_Set_sampling_time(uint8_t samp_time);
+void MPT121_Set_debounce(uint8_t touch, uint8_t release);
 uint8_t MPR121_init();
 
 uint16_t MPR121_read_buttons_status();
 uint8_t MPR121_read_one_button(uint8_t button_nomer);
 void MPR121_read_array_buttons(uint8_t * b_array);
 
-void MPR121_Set_sampling_time(uint8_t samp_time);
+uint8_t MPR121_Get_over_current_flag();
 #endif /* MPR121_H_ */
