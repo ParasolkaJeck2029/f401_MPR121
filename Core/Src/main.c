@@ -77,7 +77,12 @@ I2C_HandleTypeDef hi2c1;
 TIM_HandleTypeDef htim2;
 
 /* USER CODE BEGIN PV */
-
+enum {
+	MODE_OFF,
+	MODE_PULSE,
+	MODE_STATIC,
+	MODE_WHITE
+}modes;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -159,24 +164,53 @@ int main(void)
     /* USER CODE BEGIN 3 */
 	  uint8_t connection_status = MPR121_check_conection();
 	  static uint16_t pwm_status = 0;
-	  pwm_status+=100;
-	  if(pwm_status > 1728) pwm_status = 0;
-	  TIM2 -> CCR2 = pwm_status;
-	  if (connection_status == HAL_OK){
-		  uint16_t electrodes_status = MPR121_read_buttons_status();
-		  uint8_t b_state  =  MPR121_read_one_button(0);
-		  //sprintf(usb_buff, "Electrodes: " UINT16_T_TO_BINARY_PATTERN" Button: %d\r\n", UINT16_T_TO_BINARY(electrodes_status), b_state);
-		  uint8_t buttons[12];
-		  MPR121_read_array_buttons(buttons);
-		  sprintf(usb_buff, "Status: %d %d %d %d | %d %d %d %d | %d %d %d %d\r\n", buttons[0],buttons[1],buttons[2],buttons[3],buttons[4],buttons[5],buttons[6],buttons[7],buttons[8],buttons[9],buttons[10],buttons[11]);
+	  static uint32_t timer_usb_write = 0, timer_pwm = 0;
+	  static uint8_t mode = 0;
 
+	  if(HAL_GetTick() - timer_pwm > 15){
+		  switch(mode){
+		  case MODE_OFF: {
+			  TIM2->CCR2 = 0;
+			  TIM2->CCR3 = 0;
+			  TIM2->CCR4 = 0;
+			  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3, GPIO_PIN_RESET);
+		  }break;
+		  case MODE_PULSE:{
+			  if(++pwm_status > 1728) pwm_status = 0;
+			  TIM2 -> CCR2 = pwm_status;
+		  }break;
+		  case MODE_WHITE:{
+			  TIM2->CCR2 = 0;
+			  TIM2->CCR3 = 0;
+			  TIM2->CCR4 = 0;
+			  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3, GPIO_PIN_SET);
+		  }break;
+		  default: mode = MODE_OFF; break;
+		  }
 
-	  }else{
-		  sprintf(usb_buff, "Error: %d\r\n", connection_status);
+	  }
+	  if(HAL_GetTick() - timer_usb_write > 150){
+		  if (connection_status == HAL_OK){
+			  uint16_t electrodes_status = MPR121_read_buttons_status();
+		  	  static uint8_t last_buttons_status = 0;
+		  	  if (electrodes_status != 0 && last_buttons_status == 0){
+		  		  last_buttons_status = 1;
+		  		  mode++;
+		  	  }
+		  	  if (electrodes_status == 0 && last_buttons_status == 1){
+		  		  last_buttons_status = 0;
+		  	  }
+		  	  sprintf(usb_buff, "Mode %d Electrodes: " UINT16_T_TO_BINARY_PATTERN"\r\n",mode, UINT16_T_TO_BINARY(electrodes_status));
+		  	  //uint8_t buttons[12];
+		  	  //MPR121_read_array_buttons(buttons);
+		  	  //sprintf(usb_buff, "Mode: %d Status: %d %d %d %d | %d %d %d %d | %d %d %d %d\r\n",mode, buttons[0],buttons[1],buttons[2],buttons[3],buttons[4],buttons[5],buttons[6],buttons[7],buttons[8],buttons[9],buttons[10],buttons[11]);
+		 }else{
+			  //MPR121_init();
+			  sprintf(usb_buff, "Error: %d\r\n", connection_status);
+		  }
+		  CDC_Transmit_FS(usb_buff, strlen(usb_buff));
 	  }
 
-	  CDC_Transmit_FS(usb_buff, strlen(usb_buff));
-	  HAL_Delay(250);
   }
   /* USER CODE END 3 */
 }
