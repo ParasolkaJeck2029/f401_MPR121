@@ -148,6 +148,8 @@ int main(void)
   HAL_TIM_Base_Start(&htim2);
   TIM2 -> CCR2 = 900;
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
+  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
+  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4);
 
   char usb_buff[48] = "\r\n=====Start MPR121=======\r\n";
   CDC_Transmit_FS(usb_buff, strlen(usb_buff));
@@ -176,13 +178,18 @@ int main(void)
 			  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3, GPIO_PIN_RESET);
 		  }break;
 		  case MODE_PULSE:{
-			  if(++pwm_status > 1728) pwm_status = 0;
-			  TIM2 -> CCR2 = pwm_status;
+		  			  if(++pwm_status > 1728) pwm_status = 0;
+		  			  TIM2 -> CCR2 = pwm_status;
+		  }break;
+		  case MODE_STATIC:{
+			  TIM2->CCR3 = 1200;
+			  TIM2->CCR4 = 1700;
+			  TIM2->CCR2 = 0;
 		  }break;
 		  case MODE_WHITE:{
-			  TIM2->CCR2 = 0;
-			  TIM2->CCR3 = 0;
-			  TIM2->CCR4 = 0;
+			  TIM2->CCR2 = 1727;
+			  TIM2->CCR3 = 1727;
+			  TIM2->CCR4 = 1727;
 			  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3, GPIO_PIN_SET);
 		  }break;
 		  default: mode = MODE_OFF; break;
