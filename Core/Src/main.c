@@ -83,8 +83,11 @@ enum {
 	MODE_OFF,
 	MODE_PULSE,
 	MODE_STATIC,
-	MODE_WHITE
+	MODE_WHITE,
+	MODE_SET_BRIGHTNESS
 }modes;
+uint8_t click = 0, double_click = 0, hold = 0;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -108,6 +111,8 @@ int _write(int file, char *ptr, int len)
 	}
 	return len;
  }
+
+void read_buttons();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -166,12 +171,12 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  /*====Every tick check the connection to chip=======*/
-	  uint8_t connection_status = MPR121_check_conection();
-
 	  static uint16_t pwm_status = 0; //Brightness of red led (channel 2, PA1) to pulse mode of LED
-	  static uint32_t timer_usb_write = 0, timer_pwm = 0, timer_press = 0, timer_release = 0; //different timers to periodical action
+	  static uint32_t timer_usb_write = 0,  timer_pwm = 0;
 	  static uint8_t mode = 0;//mode of LED
+
+	  read_buttons();
+
 	  /*=====Choose of led's mode======*/
 	  switch(mode){
 		  case MODE_OFF: {
@@ -202,44 +207,40 @@ int main(void)
 			  TIM2->CCR4 = 1727;
 			  //HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3, GPIO_PIN_SET);
 		  }break;
+		  case MODE_SET_BRIGHTNESS:{
+		  		  /*=====On white with brightness=======*/
+			  TIM2->CCR2 = 1200;
+			  TIM2->CCR4 = 1700;
+			  TIM2->CCR3 = 0;
+		  }break;
 		  /*=====If mode is improper, set mode as 0 (MODE_OFF)=======*/
 		  default: mode = MODE_OFF; break;
 	  }
 	  /*=======Every 50 ms write data to USB======*/
 	  if(HAL_GetTick() - timer_usb_write > 50){
-		  /*if connection is ok*/
-		  if (connection_status == HAL_OK){
-			  uint16_t electrodes_status = MPR121_read_buttons_status(); //read buttons status as uint16_t
-		  	  static uint8_t last_buttons_status = 0;	//variable to save last status sensor panel, need to definition of click and press
-		  	  /*This if is true, when panel is pressed */
-		  	  if (electrodes_status != 0 && last_buttons_status == 0){
-		  		  timer_press = HAL_GetTick();
-		  		  last_buttons_status = 1;
-		  	  }
-		  	  /*This if is true, when panel is released */
-		  	  if (electrodes_status == 0 && last_buttons_status == 1){
-		  		  timer_release = HAL_GetTick();
-		  		  /*Click and hold if*/
-		  		  if (timer_release - timer_press > TIME_OF_HOLD){//hold
-		  			  mode = MODE_OFF;
-		  		  }else{//click
-		  			  mode++;
-		  		  }
-		  		  last_buttons_status = 0;
-		  	  }
-		  	  /*make buffer for usb transceiver*/
-		  	  sprintf(usb_buff, "Mode %d Electrodes: " UINT16_T_TO_BINARY_PATTERN"\r\n",mode, UINT16_T_TO_BINARY(electrodes_status));
+		   	  /*make buffer for usb transceiver*/
+		  	 // uint16_t electrodes_status = MPR121_read_buttons_status();
+		  	 // sprintf(usb_buff, "Mode %d Electrodes: " UINT16_T_TO_BINARY_PATTERN"\r\n",mode, UINT16_T_TO_BINARY(electrodes_status));
 		  	  //uint8_t buttons[12];
 		  	  //MPR121_read_array_buttons(buttons);
 		  	  //sprintf(usb_buff, "Mode: %d Status: %d %d %d %d | %d %d %d %d | %d %d %d %d\r\n",mode, buttons[0],buttons[1],buttons[2],buttons[3],buttons[4],buttons[5],buttons[6],buttons[7],buttons[8],buttons[9],buttons[10],buttons[11]);
-		 }else{//if connection is broken
-			  //MPR121_init();
-			  sprintf(usb_buff, "Error: %d\r\n", connection_status);//make buffer with error code
-		  }
-		  CDC_Transmit_FS(usb_buff, strlen(usb_buff));//Transmit message to USB
+
+		 // CDC_Transmit_FS(usb_buff, strlen(usb_buff));//Transmit message to USB
 		  timer_usb_write = HAL_GetTick();
 	  }
-
+	  if (click){
+		  mode++;
+		  click = 0;
+	  }
+	  if (double_click){
+		  mode = MODE_OFF;
+		  double_click = 0;
+	  }
+	  if (hold){
+		  mode = MODE_SET_BRIGHTNESS;
+		  hold = 0;
+	  }
+	  //HAL_Delay(10);
   }
   /* USER CODE END 3 */
 }
@@ -434,6 +435,43 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 		/*Put your code to this part to processing of interrupt from MPR121*/
 		HAL_GPIO_TogglePin(ONBOARD_LED_GPIO_Port, ONBOARD_LED_Pin);
 	}
+}
+void read_buttons(){
+	  /*====Every tick check the connection to chip=======*/
+	  //uint8_t connection_status = MPR121_check_conection();
+	  static uint32_t timer_last_click = 0,  timer_press = 0, timer_release = 0; //different timers to periodical action
+	  /*if connection is ok*/
+	  //if (connection_status == HAL_OK){
+		uint16_t electrodes_status = MPR121_read_buttons_status(); //read buttons status as uint16_t
+	  	static uint8_t last_buttons_status = 0;	//variable to save last status sensor panel, need to definition of click and press
+	  	/*This if is true, when panel is pressed */
+	  	if (electrodes_status != 0 && last_buttons_status == 0){
+	  		timer_press = HAL_GetTick();
+	  		last_buttons_status = 1;
+	  	}
+	  	/*This if is true, when panel is released */
+	  	if (electrodes_status == 0 && last_buttons_status == 1){
+	  		timer_release = HAL_GetTick();
+	  		/*Click and hold if*/
+	  		if (timer_release - timer_press > TIME_OF_HOLD){//hold
+	  			hold++;
+	  		}else{//click
+	  			if(timer_release - timer_last_click > 500){
+	  				click++;
+	  		  	}else{
+	  		  		double_click++;
+	  		  	}
+	  				timer_last_click = timer_release;
+	  		  	}
+	  		  	last_buttons_status = 0;
+	  	}
+	/*  }else{//if connection is broken
+		  MPR121_init();
+		  char error_buff[16];
+		  sprintf(error_buff, "Error: %d\r\n", connection_status);//make buffer with error code
+		  CDC_Transmit_FS(error_buff, strlen(error_buff));
+	  }
+	  */
 }
 /* USER CODE END 4 */
 
