@@ -87,7 +87,7 @@ enum {
 	MODE_SET_BRIGHTNESS
 }modes;
 uint8_t click = 0, double_click = 0, hold = 0;
-
+volatile reset_mpr = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -174,7 +174,14 @@ int main(void)
 	  static uint16_t pwm_status = 0; //Brightness of red led (channel 2, PA1) to pulse mode of LED
 	  static uint32_t timer_usb_write = 0,  timer_pwm = 0;
 	  static uint8_t mode = 0;//mode of LED
-
+	  if (reset_mpr == 1){
+		  reset_mpr = 0;
+		  MPR121_reset();
+		  char res_buff = "Reset the module\r\n";
+		  CDC_Transmit_FS(res_buff, sizeof(res_buff));
+		  HAL_Delay(5);
+		  MPR121_init();
+	  }
 	  read_buttons();
 
 	  /*=====Choose of led's mode======*/
@@ -219,27 +226,42 @@ int main(void)
 	  /*=======Every 50 ms write data to USB======*/
 	  if(HAL_GetTick() - timer_usb_write > 50){
 		   	  /*make buffer for usb transceiver*/
-		  	 // uint16_t electrodes_status = MPR121_read_buttons_status();
-		  	 // sprintf(usb_buff, "Mode %d Electrodes: " UINT16_T_TO_BINARY_PATTERN"\r\n",mode, UINT16_T_TO_BINARY(electrodes_status));
+		  	 uint16_t electrodes_status = MPR121_read_buttons_status();
+		  	 sprintf(usb_buff, "Mode %d Electrodes: " UINT16_T_TO_BINARY_PATTERN"\r\n",mode, UINT16_T_TO_BINARY(electrodes_status));
 		  	  //uint8_t buttons[12];
 		  	  //MPR121_read_array_buttons(buttons);
 		  	  //sprintf(usb_buff, "Mode: %d Status: %d %d %d %d | %d %d %d %d | %d %d %d %d\r\n",mode, buttons[0],buttons[1],buttons[2],buttons[3],buttons[4],buttons[5],buttons[6],buttons[7],buttons[8],buttons[9],buttons[10],buttons[11]);
 
-		 // CDC_Transmit_FS(usb_buff, strlen(usb_buff));//Transmit message to USB
+		  CDC_Transmit_FS(usb_buff, strlen(usb_buff));//Transmit message to USB
 		  timer_usb_write = HAL_GetTick();
 	  }
-	  if (click){
-		  mode++;
-		  click = 0;
-	  }
-	  if (double_click){
-		  mode = MODE_OFF;
-		  double_click = 0;
-	  }
-	  if (hold){
-		  mode = MODE_SET_BRIGHTNESS;
+	  if (mode != MODE_SET_BRIGHTNESS){
+		  if (click){
+			  mode++;
+			  click = 0;
+		  }
+		  if (double_click){
+			  mode = MODE_OFF;
+			  double_click = 0;
+		  }
+		  if (hold){
+			  mode = MODE_SET_BRIGHTNESS;
+			  hold = 0;
+		  }
+	  }else{
+		  if (click){
+		  			  mode++;
+		  			  click = 0;
+		  }
+		  if (double_click){
+		  	  mode = MODE_OFF;
+		  	  double_click = 0;
+		  }
 		  hold = 0;
+		  uint16_t electrodes_status = MPR121_read_buttons_status();
+
 	  }
+
 	  //HAL_Delay(10);
   }
   /* USER CODE END 3 */
@@ -417,6 +439,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(ONBOARD_LED_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : BUTTON_Pin */
+  GPIO_InitStruct.Pin = BUTTON_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(BUTTON_GPIO_Port, &GPIO_InitStruct);
+
   /*Configure GPIO pin : MPR_INT_Pin */
   GPIO_InitStruct.Pin = MPR_INT_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
@@ -424,6 +452,9 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(MPR_INT_GPIO_Port, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI0_IRQn);
+
   HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 
@@ -434,6 +465,11 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
 	if (GPIO_Pin == MPR_INT_Pin){
 		/*Put your code to this part to processing of interrupt from MPR121*/
 		HAL_GPIO_TogglePin(ONBOARD_LED_GPIO_Port, ONBOARD_LED_Pin);
+	}
+	if (GPIO_Pin == BUTTON_Pin){
+		reset_mpr = 1;
+		HAL_GPIO_TogglePin(ONBOARD_LED_GPIO_Port, ONBOARD_LED_Pin);
+
 	}
 }
 void read_buttons(){

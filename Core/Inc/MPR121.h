@@ -103,7 +103,9 @@ void MPR121_Set_lowerLimit(uint8_t lowerLimit_value);
 
 void MPR121_Set_sampling_time(uint8_t samp_time);
 void MPT121_Set_debounce(uint8_t touch, uint8_t release);
+
 uint8_t MPR121_init();
+void MPR121_reset();
 
 uint16_t MPR121_read_buttons_status();
 uint8_t MPR121_read_one_button(uint8_t button_nomer);

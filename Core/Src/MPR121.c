@@ -204,4 +204,7 @@ void MPR121_read_array_buttons(uint8_t * b_array){
 		b_array[i] = (buttons_state_all >> i) & 0x0001;
 	}
 }
-
+void MPR121_reset(){
+	uint8_t reset_value = 0x63;
+	MPR121_Write_register(MPR_SOFTRESET, &reset_value);
+}
